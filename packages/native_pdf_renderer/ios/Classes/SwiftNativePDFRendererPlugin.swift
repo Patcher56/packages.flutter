@@ -40,13 +40,18 @@ public class SwiftNativePDFRendererPlugin: NSObject, FlutterPlugin {
     }
 
     func openDocumentFileHandler(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void {
-        guard let pdfFilePath = call.arguments as! String? else {
-            return result(FlutterError(code: "RENDER_ERROR",
-                                       message: "Arguments not sended",
-                                       details: nil))
-        }
-        let renderer = openFileDocument(pdfFilePath: pdfFilePath)
-        result(documents.register(renderer: renderer!).infoMap as NSDictionary)
+      guard let pdfFilePath = call.arguments as! String? else {
+          return result(FlutterError(code: "RENDER_ERROR",
+                                     message: "Arguments not sended",
+                                     details: nil))
+      }
+
+      guard let renderer = openFileDocument(pdfFilePath: pdfFilePath) else {
+        result(FlutterError(code: "FILE_ERROR", message: "Error in opening file.", details: "The file \(pdfFilePath) could not be read."))
+        return
+      }
+      
+      result(documents.register(renderer: renderer).infoMap as NSDictionary)
     }
 
     func openDocumentAssetHandler(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void {

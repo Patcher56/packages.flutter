@@ -49,34 +49,47 @@ class Page {
         var success = false
         let sx = CGFloat(width) / pdfBBox.width
         let sy = CGFloat(height) / pdfBBox.height
-        tempData.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            let rgb = CGColorSpaceCreateDeviceRGB()
-            let context = CGContext(data: ptr, width: width, height: height, bitsPerComponent: 8, bytesPerRow: stride, space: rgb, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-            if context != nil {
-                context!.scaleBy(x: sx, y: sy)
-                context!.setFillColor(backgroundColor.cgColor)
-                context!.fill(pdfBBox)
-                context!.drawPDFPage(renderer)
-                var image = UIImage(cgImage: context!.makeImage()!)
 
-                if (crop != nil){
-                    // Perform cropping in Core Graphics
-                    let cutImageRef: CGImage = (image.cgImage?.cropping(to:crop!))!
-                    image = UIImage(cgImage: cutImageRef)
-                }
+        tempData.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) -> Void in
+          let rgb = CGColorSpaceCreateDeviceRGB()
 
-                switch(compressFormat) {
-                    case CompressFormat.JPEG:
-                        data = image.jpegData(compressionQuality: 1.0) as Data?
-                        break;
-                    case CompressFormat.PNG:
-                        data = image.pngData() as Data?
-                        break;
-                }
+          guard let context = CGContext(data: ptr, width: width, height: height, bitsPerComponent: 8, bytesPerRow: stride, space: rgb, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+            return
+          }
 
-                success = true
+          context.scaleBy(x: sx, y: sy)
+          context.setFillColor(backgroundColor.cgColor)
+          context.fill(pdfBBox)
+          context.drawPDFPage(renderer)
+          
+          guard let cgImage = context.makeImage() else {
+            print("Error while creating cgImage.")
+            return
+          }
+          var image = UIImage(cgImage: cgImage)
+
+          if (crop != nil){
+              // Perform cropping in Core Graphics
+            guard let cutImageRef = image.cgImage!.cropping(to: crop!) else {
+              print("Cropping rect is outside image!")
+              return
             }
+
+            image = UIImage(cgImage: cutImageRef)
+          }
+
+          switch(compressFormat) {
+              case CompressFormat.JPEG:
+                  data = image.jpegData(compressionQuality: 1.0) as Data?
+                  break;
+              case CompressFormat.PNG:
+                  data = image.pngData() as Data?
+                  break;
+          }
+
+          success = true
         }
+
         return success ? Page.DataResult(
             width: (crop != nil) ? Int(crop!.width) : width,
             height: (crop != nil) ? Int(crop!.height) : height,
