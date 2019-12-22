@@ -1,19 +1,19 @@
 class Page {
     let id: String
     let documentId: String
-    let renderer: CGPDFPage
+    let page: CGPDFPage
     let boxRect: CGRect
 
     init(id: String, documentId: String, renderer: CGPDFPage) {
         self.id = id
         self.documentId = documentId
-        self.renderer = renderer
+        self.page = renderer
         self.boxRect = renderer.getBoxRect(.mediaBox)
     }
 
     var number: Int {
         get {
-            return renderer.pageNumber
+            return page.pageNumber
         }
     }
 
@@ -41,59 +41,73 @@ class Page {
         }
     }
 
-    func render(width: Int, height: Int, crop: CGRect?, compressFormat: CompressFormat, backgroundColor: UIColor) -> Page.DataResult? {
-        let pdfBBox = renderer.getBoxRect(.mediaBox)
-        let stride = width * 4
-        var tempData = Data(repeating: 0, count: stride * height)
-        var data: Data?
-        var success = false
-        let sx = CGFloat(width) / pdfBBox.width
-        let sy = CGFloat(height) / pdfBBox.height
+  func render(width: Int, height: Int, crop: CGRect?, compressFormat: CompressFormat, backgroundColor: UIColor) -> Page.DataResult? {
+    let pageRect = page.getBoxRect(.mediaBox)
+      
+    var image: UIImage
 
-        tempData.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) -> Void in
-          let rgb = CGColorSpaceCreateDeviceRGB()
+    if #available(iOS 10.0, *) {
+      let renderer = UIGraphicsImageRenderer(size: pageRect.size)
+      
+      image = renderer.image {ctx in
+        UIColor.white.set()
+        ctx.fill(pageRect)
 
-          guard let context = CGContext(data: ptr, width: width, height: height, bitsPerComponent: 8, bytesPerRow: stride, space: rgb, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
-            return
-          }
+        ctx.cgContext.translateBy(x: 0.0, y: pageRect.size.height)
+        ctx.cgContext.scaleBy(x: 1.0, y: -1.0)
 
-          context.scaleBy(x: sx, y: sy)
-          context.setFillColor(backgroundColor.cgColor)
-          context.fill(pdfBBox)
-          context.drawPDFPage(renderer)
-          
-          guard let cgImage = context.makeImage() else {
-            print("Error while creating cgImage.")
-            return
-          }
-          var image = UIImage(cgImage: cgImage)
+        ctx.cgContext.drawPDFPage(page)
+      }
+    } else {
+      // Fallback on earlier versions
+      UIGraphicsBeginImageContext(pageRect.size)
+      let ctx = UIGraphicsGetCurrentContext()!
+      UIColor.white.set()
+      ctx.fill(pageRect)
 
-          if (crop != nil){
-              // Perform cropping in Core Graphics
-            guard let cutImageRef = image.cgImage!.cropping(to: crop!) else {
-              print("Cropping rect is outside image!")
-              return
-            }
+      ctx.translateBy(x: 0.0, y: pageRect.size.height)
+      ctx.scaleBy(x: 1.0, y: -1.0)
 
-            image = UIImage(cgImage: cutImageRef)
-          }
+      ctx.drawPDFPage(page)
 
-          switch(compressFormat) {
-              case CompressFormat.JPEG:
-                  data = image.jpegData(compressionQuality: 1.0) as Data?
-                  break;
-              case CompressFormat.PNG:
-                  data = image.pngData() as Data?
-                  break;
-          }
+      image = UIGraphicsGetImageFromCurrentImageContext()!
+      UIGraphicsEndImageContext()
+    }
 
-          success = true
+    if (crop != nil){
+        // Perform cropping in Core Graphics
+      guard let cutImageRef = image.cgImage!.cropping(to: crop!) else {
+        print("Cropping rect is outside image!")
+        return nil
+      }
+
+      image = UIImage(cgImage: cutImageRef)
+    }
+      
+    let data: Data
+
+    switch(compressFormat) {
+      case CompressFormat.JPEG:
+        guard let d = image.jpegData(compressionQuality: 1.0) else {
+          print("Error while creating jpeg image.")
+          return nil
         }
+        data = d
+        break;
+      case CompressFormat.PNG:
+        guard let d = image.pngData() else {
+          print("Error while creating png image.")
+          return nil
+        }
+        data = d
+        break;
+    }
 
-        return success ? Page.DataResult(
-            width: (crop != nil) ? Int(crop!.width) : width,
-            height: (crop != nil) ? Int(crop!.height) : height,
-            data: data!) : nil
+    return Self.DataResult(
+        width: (crop != nil) ? Int(crop!.width) : width,
+        height: (crop != nil) ? Int(crop!.height) : height,
+        data: data
+    )
     }
 
     class DataResult {
