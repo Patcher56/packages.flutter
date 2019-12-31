@@ -47,28 +47,29 @@ class Page {
     let sy = CGFloat(height) / pageRect.height
 
     var image: UIImage
+    let size = CGSize(width: width, height: height)
 
     if #available(iOS 10.0, *) {
-      let renderer = UIGraphicsImageRenderer(size: pageRect.size)
-      
+      let renderer = UIGraphicsImageRenderer(size: size)
+
       image = renderer.image {ctx in
         UIColor.white.set()
-        ctx.fill(pageRect)
+        ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
 
-        ctx.cgContext.translateBy(x: 0, y: pageRect.size.height * sy)
+        ctx.cgContext.translateBy(x: 0.0, y: pageRect.size.height * sy)
         ctx.cgContext.scaleBy(x: sx, y: -sy)
 
         ctx.cgContext.drawPDFPage(page)
       }
     } else {
       // Fallback on earlier versions
-      UIGraphicsBeginImageContext(pageRect.size)
+      UIGraphicsBeginImageContext(size)
       let ctx = UIGraphicsGetCurrentContext()!
       UIColor.white.set()
-      ctx.fill(pageRect)
+      ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
 
-      ctx.translateBy(x: 0.0, y: pageRect.size.height)
-      ctx.scaleBy(x: 1.0, y: -1.0)
+      ctx.translateBy(x: 0.0, y: pageRect.size.height * sy)
+      ctx.scaleBy(x: sx, y: -sy)
 
       ctx.drawPDFPage(page)
 
