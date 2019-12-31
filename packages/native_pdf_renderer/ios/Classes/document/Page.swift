@@ -43,7 +43,9 @@ class Page {
 
   func render(width: Int, height: Int, crop: CGRect?, compressFormat: CompressFormat, backgroundColor: UIColor) -> Page.DataResult? {
     let pageRect = page.getBoxRect(.mediaBox)
-      
+    let sx = CGFloat(width) / pageRect.width
+    let sy = CGFloat(height) / pageRect.height
+
     var image: UIImage
 
     if #available(iOS 10.0, *) {
@@ -53,8 +55,8 @@ class Page {
         UIColor.white.set()
         ctx.fill(pageRect)
 
-        ctx.cgContext.translateBy(x: 0.0, y: pageRect.size.height)
-        ctx.cgContext.scaleBy(x: 1.0, y: -1.0)
+        ctx.cgContext.translateBy(x: 0, y: pageRect.size.height * sy)
+        ctx.cgContext.scaleBy(x: sx, y: -sy)
 
         ctx.cgContext.drawPDFPage(page)
       }
