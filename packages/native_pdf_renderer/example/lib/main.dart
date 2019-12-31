@@ -121,10 +121,11 @@ class ImageLoader extends StatelessWidget {
     }
     final page = await document.getPage(pageNumber);
     final pageImage = await page.render(
-      width: page.width * 2,
-      height: page.height * 2,
+      width: (page.width * 2).toInt(),
+      height: (page.height * 2).toInt(),
       format: PDFPageFormat.JPEG,
       backgroundColor: '#ffffff',
+      // cropRect: Rect.fromLTWH(0, 0, page.width.toDouble(), page.height.toDouble())
     );
     await page.close();
     storage.pages[pageNumber] = pageImage;
