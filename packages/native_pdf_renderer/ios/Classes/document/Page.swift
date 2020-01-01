@@ -79,7 +79,9 @@ class Page {
 
     if (crop != nil){
         // Perform cropping in Core Graphics
-      guard let cutImageRef = image.cgImage!.cropping(to: crop!) else {
+      // convert points to pixels
+      let pixelCropRect = CGRect(x: crop!.minX * image.scale, y: crop!.minY * image.scale, width: crop!.width * image.scale, height: crop!.height * image.scale)
+      guard let cutImageRef = image.cgImage!.cropping(to: pixelCropRect) else {
         print("Cropping rect is outside image!")
         return nil
       }
