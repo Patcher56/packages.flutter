@@ -6,7 +6,12 @@ import 'package:native_pdf_renderer_example/has_support.dart';
 
 void main() => runApp(ExampleApp());
 
-class ExampleApp extends StatelessWidget {
+class ExampleApp extends StatefulWidget {
+  @override
+  _ExampleAppState createState() => _ExampleAppState();
+}
+
+class _ExampleAppState extends State<ExampleApp> {
   Future<PDFDocument> _getDocument() async {
     if (await hasSupport()) {
       return PDFDocument.openAsset('assets/sample.pdf');
@@ -18,6 +23,16 @@ class ExampleApp extends StatelessWidget {
     }
   }
 
+  bool cropped = false;
+  Future<PDFDocument> pdfFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    pdfFuture = _getDocument();
+  }
+
   @override
   Widget build(BuildContext context) {
     final storage = PagesStorage();
@@ -26,8 +41,16 @@ class ExampleApp extends StatelessWidget {
       title: 'PDF View example',
       color: Colors.white,
       home: Scaffold(
+        appBar: AppBar(
+          title: Text('Native PDF Renderer Example'),
+          actions: <Widget>[IconButton(icon: Icon(Icons.crop), onPressed: () {
+            setState(() {
+              cropped = !cropped;
+            });
+          },)],
+        ),
         body: FutureBuilder(
-          future: _getDocument(),
+          future: pdfFuture,
           builder: (context, AsyncSnapshot<PDFDocument> snapshot) {
             if (!snapshot.hasData) {
               return Center(
@@ -47,11 +70,13 @@ class ExampleApp extends StatelessWidget {
                   storage: storage,
                   document: snapshot.data,
                   pageNumber: 1,
+                  cropped: cropped,
                 ),
                 ImageLoader(
                   storage: storage,
                   document: snapshot.data,
                   pageNumber: 2,
+                  cropped: cropped,
                 ),
               ],
             );
@@ -87,12 +112,14 @@ class ImageLoader extends StatelessWidget {
     @required this.storage,
     @required this.document,
     @required this.pageNumber,
+    @required this.cropped,
     Key key,
   }) : super(key: key);
 
   final PagesStorage storage;
   final PDFDocument document;
   final int pageNumber;
+  final bool cropped;
 
   @override
   Widget build(BuildContext context) => FutureBuilder(
@@ -120,12 +147,15 @@ class ImageLoader extends StatelessWidget {
       return storage.pages[pageNumber];
     }
     final page = await document.getPage(pageNumber);
+    final w = page.width * 2;
+    final h = page.height * 2;
+    final cropRect = cropped ? Rect.fromLTWH(0, 0, w / 2, h / 2) : null;
     final pageImage = await page.render(
-      width: (page.width * 2).toInt(),
-      height: (page.height * 2).toInt(),
+      width: w.toInt(),
+      height: h.toInt(),
       format: PDFPageFormat.JPEG,
       backgroundColor: '#ffffff',
-      cropRect: Rect.fromLTWH(0, 0, page.width.toDouble() * 2, page.height.toDouble() * 2),
+      cropRect: cropRect,
     );
     await page.close();
     storage.pages[pageNumber] = pageImage;
