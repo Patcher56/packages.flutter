@@ -88,15 +88,14 @@ class PDFPage {
   /// As default PNG uses transparent background. For change it you can set
   /// [backgroundColor] property like a hex string ('#000000')
   /// [format] - image type, all types can be seen here [PDFPageFormat]
-  /// [cropRect] - render only the necessary part of the image
   Future<PDFPageImage> render({
     @required int width,
     @required int height,
+    double scale,
+    int x,
+    int y,
     PDFPageFormat format = PDFPageFormat.PNG,
     String backgroundColor,
-    // ignore: deprecated_member_use_from_same_package
-    @Deprecated('Use cropRect instead') PDFCropDef crop,
-    Rect cropRect,
   }) {
     if (document.isClosed) {
       throw PdfDocumentAlreadyClosedException();
@@ -104,16 +103,16 @@ class PDFPage {
       throw PdfPageAlreadyClosedException();
     }
 
-    final rect = cropRect ?? crop?.rect;
-
     return PDFPageImage.render(
       pageId: id,
       pageNumber: pageNumber,
       width: width,
       height: height,
+      scale: scale,
+      x: x,
+      y: y,
       format: format,
       backgroundColor: backgroundColor,
-      crop: rect,
     );
   }
 

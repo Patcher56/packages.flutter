@@ -41,23 +41,23 @@ class Page {
         }
     }
 
-  func render(width: Int, height: Int, crop: CGRect?, compressFormat: CompressFormat, backgroundColor: UIColor) -> Page.DataResult? {
+  func render(width: Int, height: Int, scale: Double?, x: Int?, y: Int?, compressFormat: CompressFormat, backgroundColor: UIColor) -> Page.DataResult? {
     let pageRect = page.getBoxRect(.mediaBox)
-    let sx = CGFloat(width) / pageRect.width
-    let sy = CGFloat(height) / pageRect.height
+    let scaleFactor = scale ?? 1
 
     var image: UIImage
-    let size = CGSize(width: width, height: height)
+    let size = CGSize(width: Double(width) * scaleFactor, height: Double(height) * scaleFactor)
+    let scaleCGFloat = CGFloat(scaleFactor)
 
     if #available(iOS 10.0, *) {
       let renderer = UIGraphicsImageRenderer(size: size)
 
       image = renderer.image {ctx in
         UIColor.white.set()
-        ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        ctx.fill(CGRect(x: 0, y: 0, width: Double(width) * scaleFactor, height: Double(height) * scaleFactor))
 
-        ctx.cgContext.translateBy(x: 0.0, y: pageRect.size.height * sy)
-        ctx.cgContext.scaleBy(x: sx, y: -sy)
+        ctx.cgContext.translateBy(x: x != nil ? CGFloat(x!) : 0.0, y: pageRect.size.height * scaleCGFloat)
+        ctx.cgContext.scaleBy(x: scaleCGFloat, y: -scaleCGFloat)
 
         ctx.cgContext.drawPDFPage(page)
       }
@@ -66,27 +66,15 @@ class Page {
       UIGraphicsBeginImageContext(size)
       let ctx = UIGraphicsGetCurrentContext()!
       UIColor.white.set()
-      ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
+      ctx.fill(CGRect(x: 0, y: 0, width: Double(width) * scaleFactor, height: Double(height) * scaleFactor))
 
-      ctx.translateBy(x: 0.0, y: pageRect.size.height * sy)
-      ctx.scaleBy(x: sx, y: -sy)
+      ctx.translateBy(x: 0.0, y: pageRect.size.height * scaleCGFloat)
+      ctx.scaleBy(x: scaleCGFloat, y: -scaleCGFloat)
 
       ctx.drawPDFPage(page)
 
       image = UIGraphicsGetImageFromCurrentImageContext()!
       UIGraphicsEndImageContext()
-    }
-
-    if (crop != nil){
-        // Perform cropping in Core Graphics
-      // convert points to pixels
-      let pixelCropRect = CGRect(x: crop!.minX * image.scale, y: crop!.minY * image.scale, width: crop!.width * image.scale, height: crop!.height * image.scale)
-      guard let cutImageRef = image.cgImage!.cropping(to: pixelCropRect) else {
-        print("Cropping rect is outside image!")
-        return nil
-      }
-
-      image = UIImage(cgImage: cutImageRef)
     }
       
     let data: Data
@@ -109,8 +97,8 @@ class Page {
     }
 
     return Self.DataResult(
-        width: (crop != nil) ? Int(crop!.width) : width,
-        height: (crop != nil) ? Int(crop!.height) : height,
+        width: width,
+        height: height,
         data: data
     )
     }

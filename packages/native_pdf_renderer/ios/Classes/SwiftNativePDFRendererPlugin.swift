@@ -123,23 +123,11 @@ public class SwiftNativePDFRendererPlugin: NSObject, FlutterPlugin {
         let pageId = args["pageId"] as! String
         let width = args["width"] as! Int
         let height = args["height"] as! Int
-        let crop = args["crop"] as! Bool
-        let compressFormat = args["format"]as! Int
+        let scale = args["scale"] != nil ? args["scale"] as? Double : nil
+        let x = args["x"] != nil ? args["x"] as? Int : nil
+        let y = args["y"] != nil ? args["y"] as? Int : nil
+        let compressFormat = args["format"] as! Int
         let backgroundColor = args["backgroundColor"] as! String
-
-        // Set crop if required
-        var cropZone: CGRect? = nil
-        if (crop){
-            let cWidth = args["crop_width"] as! Int
-            let cHeight = args["crop_height"] as! Int
-            if (cWidth != width || cHeight != height){
-                cropZone = CGRect(x: args["crop_x"] as! Int,
-                                  y: args["crop_y"] as! Int,
-                                  width: cWidth,
-                                  height: cHeight)
-            }
-        }
-
 
         dispQueue.async {
             var results: [String: Any]? = nil
@@ -148,7 +136,9 @@ public class SwiftNativePDFRendererPlugin: NSObject, FlutterPlugin {
                 if let data = page.render(
                     width: width,
                     height: height,
-                    crop: cropZone,
+                    scale: scale,
+                    x: x,
+                    y: y,
                     compressFormat: CompressFormat(rawValue: compressFormat)!,
                     backgroundColor: UIColor(hexString: backgroundColor)
                 ) {

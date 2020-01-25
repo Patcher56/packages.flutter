@@ -47,7 +47,6 @@ class PDFPageImage {
   /// As default PNG uses transparent background. For change it you can set
   /// [backgroundColor] property like a hex string ('#000000')
   /// [format] - image type, all types can be seen here [PDFPageFormat]
-  /// [crop] - render only the necessary part of the image
   static Future<PDFPageImage> render({
     @required String pageId,
     @required int pageNumber,
@@ -55,7 +54,9 @@ class PDFPageImage {
     @required int height,
     @required PDFPageFormat format,
     @required String backgroundColor,
-    @required Rect crop,
+    double scale,
+    int x,
+    int y,
   }) async {
     if (format == PDFPageFormat.WEBP && Platform.isIOS) {
       throw PdfNotSupportException(
@@ -67,13 +68,11 @@ class PDFPageImage {
       'pageId': pageId,
       'width': width,
       'height': height,
+      'scale': scale,
+      'x': x,
+      'y': y,
       'format': format.value,
       'backgroundColor': backgroundColor,
-      'crop': crop != null,
-      'crop_x': crop?.left?.toInt(),
-      'crop_y': crop?.top?.toInt(),
-      'crop_height': crop?.height?.toInt(),
-      'crop_width': crop?.width?.toInt(),
     });
 
     if (!(obj is Map<dynamic, dynamic>)) {
