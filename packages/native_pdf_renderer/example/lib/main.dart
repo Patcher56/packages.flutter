@@ -151,6 +151,8 @@ class ImageLoader extends StatelessWidget {
     final pageImage = await page.render(
       width: cropped ? page.width ~/ 2 : page.width,
       height: cropped ? page.height ~/ 2 : page.height,
+      x: cropped ? 200 : 0,
+      y: cropped ? 200 : 0,
       scale: 2,
       format: PDFPageFormat.JPEG,
       backgroundColor: '#ffffff',
