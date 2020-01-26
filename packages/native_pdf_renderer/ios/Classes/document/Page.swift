@@ -41,12 +41,12 @@ class Page {
         }
     }
 
-  func render(width: Int, height: Int, scale: Double?, x: Int?, y: Int?, compressFormat: CompressFormat, backgroundColor: UIColor) -> Page.DataResult? {
+  func render(width: Double, height: Double, scale: Double?, x: Double?, y: Double?, compressFormat: CompressFormat, backgroundColor: UIColor) -> Page.DataResult? {
     let pageRect = page.getBoxRect(.mediaBox)
     let scaleFactor = scale ?? 1
 
     var image: UIImage
-    let size = CGSize(width: Double(width) * scaleFactor, height: Double(height) * scaleFactor)
+    let size = CGSize(width: width * scaleFactor, height: height * scaleFactor)
     let scaleCGFloat = CGFloat(scaleFactor)
     let xCGFloat = x != nil ? CGFloat(-x!) * scaleCGFloat : 0.0
     let yCGFloat = y != nil ? CGFloat(-y!) * scaleCGFloat : 0.0
@@ -56,7 +56,7 @@ class Page {
 
       image = renderer.image {ctx in
         UIColor.white.set()
-        ctx.fill(CGRect(x: 0, y: 0, width: Double(width) * scaleFactor, height: Double(height) * scaleFactor))
+        ctx.fill(CGRect(x: 0, y: 0, width: width * scaleFactor, height: height * scaleFactor))
 
         ctx.cgContext.translateBy(x: xCGFloat, y: pageRect.size.height * scaleCGFloat + yCGFloat)
         ctx.cgContext.scaleBy(x: scaleCGFloat, y: -scaleCGFloat)
@@ -68,7 +68,7 @@ class Page {
       UIGraphicsBeginImageContext(size)
       let ctx = UIGraphicsGetCurrentContext()!
       UIColor.white.set()
-      ctx.fill(CGRect(x: 0, y: 0, width: Double(width) * scaleFactor, height: Double(height) * scaleFactor))
+      ctx.fill(CGRect(x: 0, y: 0, width: width * scaleFactor, height: height * scaleFactor))
 
       ctx.translateBy(x: xCGFloat, y: pageRect.size.height * scaleCGFloat + yCGFloat)
       ctx.scaleBy(x: scaleCGFloat, y: -scaleCGFloat)
@@ -106,11 +106,11 @@ class Page {
     }
 
     class DataResult {
-        let width: Int
-        let height: Int
+        let width: Double
+        let height: Double
         let data: Data
 
-        init(width: Int, height: Int, data: Data) {
+        init(width: Double, height: Double, data: Data) {
             self.width = width
             self.height = height
             self.data = data

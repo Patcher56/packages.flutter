@@ -121,11 +121,11 @@ public class SwiftNativePDFRendererPlugin: NSObject, FlutterPlugin {
                                        details: nil))
         }
         let pageId = args["pageId"] as! String
-        let width = args["width"] as! Int
-        let height = args["height"] as! Int
+        let width = args["width"] as! Double
+        let height = args["height"] as! Double
         let scale = args["scale"] != nil ? args["scale"] as? Double : nil
-        let x = args["x"] != nil ? args["x"] as? Int : nil
-        let y = args["y"] != nil ? args["y"] as? Int : nil
+        let x = args["x"] != nil ? args["x"] as? Double : nil
+        let y = args["y"] != nil ? args["y"] as? Double : nil
         let compressFormat = args["format"] as! Int
         let backgroundColor = args["backgroundColor"] as! String
 
