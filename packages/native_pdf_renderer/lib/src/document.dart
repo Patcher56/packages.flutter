@@ -94,8 +94,8 @@ class PDFDocument {
       document: this,
       id: obj['id'] as String,
       pageNumber: pageNumber,
-      width: obj['width'] as double,
-      height: obj['height'] as double,
+      width: obj['width'] as int,
+      height: obj['height'] as int,
     );
   }
 

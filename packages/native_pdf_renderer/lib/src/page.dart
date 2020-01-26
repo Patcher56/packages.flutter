@@ -74,10 +74,10 @@ class PDFPage {
   final int pageNumber;
 
   /// Page source width in pixels
-  final double width;
+  final int width;
 
   /// Page source height in pixels
-  final double height;
+  final int height;
 
   /// Is the page closed
   bool isClosed = false;
@@ -89,11 +89,11 @@ class PDFPage {
   /// [backgroundColor] property like a hex string ('#000000')
   /// [format] - image type, all types can be seen here [PDFPageFormat]
   Future<PDFPageImage> render({
-    @required double width,
-    @required double height,
+    @required int width,
+    @required int height,
     double scale,
-    double x,
-    double y,
+    int x,
+    int y,
     PDFPageFormat format = PDFPageFormat.PNG,
     String backgroundColor,
   }) {

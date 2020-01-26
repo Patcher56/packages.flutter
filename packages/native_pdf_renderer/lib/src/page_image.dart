@@ -50,13 +50,13 @@ class PDFPageImage {
   static Future<PDFPageImage> render({
     @required String pageId,
     @required int pageNumber,
-    @required double width,
-    @required double height,
+    @required int width,
+    @required int height,
     @required PDFPageFormat format,
     @required String backgroundColor,
     double scale,
-    double x,
-    double y,
+    int x,
+    int y,
   }) async {
     if (format == PDFPageFormat.WEBP && Platform.isIOS) {
       throw PdfNotSupportException(
